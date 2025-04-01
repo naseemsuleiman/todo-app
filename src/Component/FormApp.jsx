@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
-import { CheckIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { CheckIcon, XMarkIcon, PencilIcon } from '@heroicons/react/24/solid';
 
 
 const TodoContext = createContext();
@@ -44,9 +44,19 @@ const TodoContextProvider = ({ children }) => {
     localStorage.removeItem('user');
     localStorage.removeItem('todos');
   };
-
+  const editTodo = (id, updatedTask, updatedPriority, updatedDueDateTime) => {
+    setTodos(todos.map(todo => 
+      todo.id === id 
+        ? { ...todo, 
+            task: updatedTask, 
+            priority: updatedPriority, 
+            dueDateTime: updatedDueDateTime 
+          } 
+        : todo
+    ));
+  };
   return (
-    <TodoContext.Provider value={{ todos, addTodo, toggleComplete, deleteTodo }}>
+    <TodoContext.Provider value={{ todos, addTodo, toggleComplete, deleteTodo, editTodo }}>
       <AuthContext.Provider value={{ user, signup, login, logout }}>
         {children}
       </AuthContext.Provider>
@@ -74,12 +84,12 @@ const SignUp = () => {
   };
 
   return (
-    <div className="bg-white min-h-screen flex items-center justify-center">
-      <div className="bg-[#003366] bg-opacity-80 p-8 rounded-xl shadow-lg w-full max-w-sm">
-        <h2 className="text-3xl font-bold text-white text-center mb-6">Sign Up</h2>
+    <div className="bg-teal-100 min-h-screen flex items-center justify-center">
+      <div className="bg-teal-50 bg-opacity-80 p-8 rounded-xl shadow-lg w-full max-w-sm">
+      <h2 className="text-3xl font-bold text-[#003366] text-center mb-6">Welcome! Please Sign Up</h2>
         <form onSubmit={handleSignUp}>
           <input
-            className="w-full p-4 mb-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#003366]"
+            className="w-full p-4 mb-4 rounded-xl border focus:outline-none focus:ring-2 focus:ring-[#003366] text-black "
             type="text"
             placeholder="Enter your name"
             value={name}
@@ -134,9 +144,9 @@ const Login = () => {
   };
 
   return (
-    <div className="bg-white min-h-screen flex items-center justify-center">
-      <div className="bg-[#003366] bg-opacity-80 p-8 rounded-xl shadow-lg w-full max-w-sm">
-        <h2 className="text-3xl font-bold text-white text-center mb-6">Login</h2>
+    <div className="bg-teal-100 min-h-screen flex items-center justify-center">
+      <div className="bg-white bg-opacity-80 p-8 rounded-xl shadow-lg w-full max-w-sm">
+      <h2 className="text-3xl font-bold text-[#003366] text-center mb-6">Welcome Back! Please Login</h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
         <form onSubmit={handleLogin}>
           <input
@@ -169,23 +179,46 @@ const Login = () => {
 
 
 const FormApp = () => {
-  const { todos, addTodo, toggleComplete, deleteTodo } = useTodos();
+  const { todos, addTodo, toggleComplete, deleteTodo, editTodo} = useTodos();
   const { user, logout } = useAuth();
   const [task, setTask] = useState('');
   const [priority, setPriority] = useState('Low');
   const [dueDate, setDueDate] = useState('');
   const [dueTime, setDueTime] = useState('');
+  const [editingId, setEditingId] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const handleAddTask = () => {
     if (task.trim()) {
       const dueDateTime = dueDate && dueTime ? `${dueDate} ${dueTime}` : dueDate || 'No Due Date';
+      if(isEditing){
+        editTodo(editingId, task, priority, dueDateTime)
+        setIsEditing(false)
+        setEditingId(null)
+       } else{
       addTodo(task, priority, dueDateTime);
+        }
       setTask('');
       setPriority('Low');
       setDueDate('');
       setDueTime('');
     }
   };
+  const handleEdit = (todo) => {
+    setTask(todo.task);
+    setPriority(todo.priority);
+    if (todo.dueDateTime && todo.dueDateTime !== 'No Due Date') {
+        const [datePart, timePart] = todo.dueDateTime.split(' ');
+        setDueDate(datePart);
+        setDueTime(timePart || '');
+      } else {
+        setDueDate('');
+        setDueTime('');
+      }
+      
+      setEditingId(todo.id);
+      setIsEditing(true);
+    };
 
   if (!user) {
     return <Login />; 
@@ -247,39 +280,52 @@ const FormApp = () => {
       </div>
 
       <ul className="mt-8 w-full max-w-lg space-y-4">
-        {todos.map((todo) => (
-          <li
-            key={todo.id}
-            className={`flex flex-col items-start bg-[#003366] p-6 my-4 shadow-xl rounded-xl ${
-              todo.completed ? 'line-through text-gray-500' : ''
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              <p className="text-xl font-semibold text-white">{todo.task}</p>
-              <span className="ml-2 text-sm text-teal-200 italic font-bold">Priority {todo.priority} </span>
-            </div> <br />
-            <small className="text-white">Due: {todo.dueDateTime || 'No Due Date'}</small>
-            <div className="mt-4 flex space-x-40 flex justify-between mt-6">
-              <button
-                className="text-green-600 hover:text-green-700 size-5"
-                onClick={() => toggleComplete(todo.id)}
-              >
-                
-               Complete <CheckIcon className="h-6 w-6" />
-              </button>
-              <button
-                className="text-red-600 hover:text-red-700"
-                onClick={() => deleteTodo(todo.id)}
-              >
-               Delete <XMarkIcon className="h-6 w-6" />
-              </button>
-            </div>
-          </li>
+      {todos.map((todo) => (
+    <li
+      key={todo.id}
+      className={`flex flex-col items-start bg-[#003366] p-6 my-4 shadow-xl rounded-xl ${
+        todo.completed ? 'line-through text-gray-500' : ''
+      }`}
+    >
+      <div className="flex items-center space-x-3">
+        <p className="text-xl font-semibold text-white">{todo.task}</p>
+        <span className="ml-2 text-sm text-teal-200 italic font-bold">Priority {todo.priority} </span>
+      </div> <br />
+      <small className="text-white">Due: {todo.dueDateTime || 'No Due Date'}</small>
+      <div className="mt-4 w-full flex justify-between items-center">
+  <button
+    className="flex items-center space-x-2 px-4 py-2  hover:bg-green-700 text-white rounded-lg transition-colors"
+    onClick={() => toggleComplete(todo.id)}
+  >
+    <span>Complete</span>
+    <CheckIcon className="h-5 w-5" />
+  </button>
+  
+  <div className="flex space-x-3">
+    <button
+      className="flex items-center space-x-2 px-4 py-2  hover:bg-yellow-600 text-white rounded-lg transition-colors"
+      onClick={() => handleEdit(todo)}
+    >
+      <span>Edit</span>
+      <PencilIcon className="h-5 w-5" />
+    </button>
+    <button
+      className="flex items-center space-x-2 px-4 py-2 hover:bg-red-700 text-white rounded-lg transition-colors"
+      onClick={() => deleteTodo(todo.id)}
+    >
+      <span>Delete</span>
+      <XMarkIcon className="h-5 w-5" />
+    </button>
+  </div>
+
+      </div>
+    </li>
         ))}
       </ul>
     </div>
   );
 };
+
 
 const App = () => (
   <TodoContextProvider>
