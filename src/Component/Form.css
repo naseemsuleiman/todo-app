@@ -1,0 +1,28 @@
+body {
+    background: linear-gradient(135deg, #f0f4f8 0%, #e5ebf3 100%); /* Soft gradient from light blueish tone to white */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-size: 100% 100%;
+  }
+  
+  .container {
+    background-color: white; /* Ensure the main content container has a clean white background */
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .bg-sleek {
+    background: linear-gradient(135deg, rgba(0, 51, 102, 0.9), rgba(0, 51, 102, 0.7)); /* Darker, subtle gradient for form */
+  }
+  
+  .bg-light {
+    background-color: rgba(255, 255, 255, 0.9); /* Soft transparent white for subtle effect */
+  }
+  
+  .shadow-xl {
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Add shadow for a sleek and floating feel */
+  }
+  
+  h1, h2 {
+    color: #003366; /* Matching the header color to your app theme */
+  }
+  
