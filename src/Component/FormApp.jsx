@@ -1,9 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import { CheckIcon, XMarkIcon, PencilIcon } from '@heroicons/react/24/solid';
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1500099451630311"
-     crossorigin="anonymous"></script>
-     
+
 
 
 const TodoContext = createContext();
